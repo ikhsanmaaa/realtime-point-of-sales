@@ -1,0 +1,69 @@
+"use server";
+import { INITIAL_STATE_LOGIN_FORM } from "@/constants/auth-constant";
+import { createClient } from "@/lib/supabase/server";
+import { AuthFormState } from "@/types/auth";
+import { loginSchemaForm } from "@/validations/auth-validation";
+import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { z } from "zod";
+
+export async function login(
+  prevState: AuthFormState,
+  formData: FormData | null,
+): Promise<AuthFormState> {
+  if (!formData) {
+    return INITIAL_STATE_LOGIN_FORM;
+  }
+
+  const validatedFields = loginSchemaForm.safeParse({
+    email: formData.get("email"),
+    password: formData.get("password"),
+  });
+
+  if (!validatedFields.success) {
+    const formatted = z.treeifyError(validatedFields.error);
+
+    return {
+      errors: {
+        email: formatted.properties?.email?.errors,
+        password: formatted.properties?.password?.errors,
+        _form: [],
+      },
+    };
+  }
+  const supabase = await createClient();
+  const {
+    error,
+    data: { user },
+  } = await supabase.auth.signInWithPassword(validatedFields.data);
+
+  if (error) {
+    return {
+      status: "error",
+      errors: {
+        ...prevState.errors,
+        _form: [error.message],
+      },
+    };
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user?.id)
+    .single();
+
+  if (profile) {
+    const cookieStore = await cookies();
+    cookieStore.set("user_profile", JSON.stringify(profile), {
+      httpOnly: true,
+      path: "/",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 365,
+    });
+  }
+
+  revalidatePath("/", "layout");
+  redirect("/");
+}

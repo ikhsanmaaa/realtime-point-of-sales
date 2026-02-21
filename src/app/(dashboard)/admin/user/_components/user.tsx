@@ -10,8 +10,12 @@ import useDataTable from "@/hooks/use-data-table";
 import { createClient } from "@/lib/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Pencil, Trash2 } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import DialogCreateUser from "./dialog-create-user";
+import { Profile } from "@/types/auth";
+import DialogUpdateUser from "./dialog-update-user";
+import DialogDeleteUser from "./dialog-delete-user";
 
 export default function UserManagement() {
   const supabase = createClient();
@@ -25,7 +29,11 @@ export default function UserManagement() {
     handleChangeSearch,
   } = useDataTable();
 
-  const { data: users, isLoading } = useQuery({
+  const {
+    data: users,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["users", currentPage, currentLimit, currentSearch],
     queryFn: async () => {
       const result = await supabase
@@ -44,10 +52,19 @@ export default function UserManagement() {
     },
   });
 
+  const [selectedAction, setSelectedAction] = useState<{
+    data: Profile;
+    type: "update" | "delete";
+  } | null>(null);
+
+  const handleChangeAction = (open: boolean) => {
+    if (!open) setSelectedAction(null);
+  };
+
   const filterData = useMemo(() => {
     return (users?.data || []).map((user, index) => {
       return [
-        index + 1,
+        currentLimit * (currentPage - 1) + index + 1,
         user.id,
         user.name,
         user.role,
@@ -60,7 +77,12 @@ export default function UserManagement() {
                   Edit
                 </span>
               ),
-              action: () => {},
+              action: () => {
+                setSelectedAction({
+                  data: user,
+                  type: "update",
+                });
+              },
             },
             {
               label: (
@@ -70,7 +92,12 @@ export default function UserManagement() {
                 </span>
               ),
               variant: "destructive",
-              action: () => {},
+              action: () => {
+                setSelectedAction({
+                  data: user,
+                  type: "delete",
+                });
+              },
             },
           ]}
         />,
@@ -97,6 +124,7 @@ export default function UserManagement() {
             <DialogTrigger asChild>
               <Button variant="outline">Create</Button>
             </DialogTrigger>
+            <DialogCreateUser refetch={refetch} />
           </Dialog>
         </div>
       </div>
@@ -109,6 +137,18 @@ export default function UserManagement() {
         currentLimit={currentLimit}
         onChangePage={handleChangePage}
         onChangeLimit={handleChangeLimit}
+      />
+      <DialogUpdateUser
+        open={selectedAction !== null && selectedAction.type === "update"}
+        refetch={refetch}
+        currentData={selectedAction?.data}
+        handleChangeAction={handleChangeAction}
+      />
+      <DialogDeleteUser
+        open={selectedAction !== null && selectedAction.type === "delete"}
+        refetch={refetch}
+        currentData={selectedAction?.data}
+        handleChangeAction={handleChangeAction}
       />
     </div>
   );

@@ -1,4 +1,4 @@
-export const HEADER_TABLE_MENU = [
+export const HEADER_MENU_MANAGEMENT = [
   "No",
   "Name",
   "Category",

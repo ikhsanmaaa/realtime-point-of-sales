@@ -1,7 +1,6 @@
 export const HEADER_TABLE_MANAGEMENT = [
   "No",
   "Name",
-  "Description",
   "Capacity",
   "Status",
   "Action",

@@ -73,18 +73,17 @@ export default function TableManagement() {
     return (tables?.data || []).map((table: Table, index) => {
       return [
         currentLimit * (currentPage - 1) + index + 1,
-        table.name,
-        table.description,
+        <div>
+          <h4 className="font-bold">{table.name}</h4>
+          <p className="text-xs">{table.description}</p>
+        </div>,
         table.capacity,
         <div
-          className={cn(
-            "px-2 py-1 rounded-full text-white w-fit capitalize",
-            table.status === "available"
-              ? "bg-green-500"
-              : table.status === "reserved"
-                ? "bg-amber-500"
-                : "bg-red-500",
-          )}
+          className={cn("px-2 py-1 rounded-full text-white w-fit capitalize", {
+            "bg-green-500": table.status === "available",
+            "bg-amber-500": table.status === "reserved",
+            "bg-red-500": table.status === "unavailable",
+          })}
         >
           {table.status}
         </div>,

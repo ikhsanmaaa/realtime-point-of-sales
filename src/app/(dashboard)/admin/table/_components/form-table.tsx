@@ -42,7 +42,7 @@ export default function FormTable<T extends FieldValues>({
             <FormInput
               form={form}
               name={"name" as Path<T>}
-              label="name"
+              label="Name"
               placeholder="insert name here"
             />
 

@@ -46,14 +46,14 @@ export default function FormUser<T extends FieldValues>({
           <FormInput
             form={form}
             name={"name" as Path<T>}
-            label="name"
+            label="Name"
             placeholder="insert your name"
           />
           {type === "Create" && (
             <FormInput
               form={form}
               name={"email" as Path<T>}
-              label="email"
+              label="Email"
               placeholder="insert email here"
               type="email"
             />
@@ -69,7 +69,7 @@ export default function FormUser<T extends FieldValues>({
           <FormSelect
             form={form}
             name={"role" as Path<T>}
-            label="role"
+            label="Role"
             selectItem={ROLE_LIST}
           />
 
@@ -77,7 +77,7 @@ export default function FormUser<T extends FieldValues>({
             <FormInput
               form={form}
               name={"password" as Path<T>}
-              label="password"
+              label="Password"
               placeholder="*****"
               type="password"
             />

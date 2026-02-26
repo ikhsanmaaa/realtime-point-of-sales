@@ -1,3 +1,5 @@
+import { Menu } from "@/validations/menu-validations";
+
 export type OrderFormState = {
   status?: string;
   errors?: {
@@ -7,4 +9,13 @@ export type OrderFormState = {
     status?: string[];
     _form?: string[];
   };
+};
+
+export type Cart = {
+  menu_id: string;
+  quantity: number;
+  total: number;
+  notes: string;
+  menu: Menu;
+  order_id?: string;
 };

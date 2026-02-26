@@ -1,3 +1,5 @@
+import { INITIAL_STATE_ACTION } from "./general-constant";
+
 export const HEADER_ORDER_MANAGEMENT = [
   "No",
   "Order ID",
@@ -69,3 +71,10 @@ export const FILTER_MENU = [
     label: "Dessert",
   },
 ];
+
+export const INITIAL_STATE_GENERATE_PAYMENT={
+  ...INITIAL_STATE_ACTION,
+  data:{
+    payment_token:''
+  }
+}

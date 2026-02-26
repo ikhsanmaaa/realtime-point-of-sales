@@ -5,6 +5,11 @@ import { Separator } from "@/components/ui/separator";
 import { usePricing } from "@/hooks/use-pricing";
 import { convertIDR } from "@/lib/utils";
 import { Menu } from "@/validations/menu-validations";
+import { startTransition, useActionState, useEffect, useMemo } from "react";
+import { generatePayment } from "../../action";
+import { INITIAL_STATE_GENERATE_PAYMENT } from "@/constants/order-constant";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 export default function Summary({
   order,
@@ -23,6 +28,40 @@ export default function Summary({
   id: string;
 }) {
   const { totalPrice, service, tax, grandTotal } = usePricing(orderMenu);
+
+  const isAllServed = useMemo(() => {
+    return orderMenu?.every((item) => item.status === "served");
+  }, [orderMenu]);
+
+  const [
+    generatePaymentState,
+    generatePaymentAction,
+    isPendingGeneratePayment,
+  ] = useActionState(generatePayment, INITIAL_STATE_GENERATE_PAYMENT);
+
+  const handleGeneratePayment = () => {
+    const formData = new FormData();
+    formData.append("id", id || "");
+    formData.append("gross_amount", grandTotal.toString() || "");
+    formData.append("customer_name", order?.customer_name || "");
+
+    startTransition(() => {
+      generatePaymentAction(formData);
+    });
+  };
+
+  useEffect(() => {
+    if (generatePaymentState?.status === "success") {
+      window.snap.pay(generatePaymentState.data.payment_token, {
+        onSuccess: function (result: any) {
+          window.location.href = `/payment/success?order_id=${result.order_id}`;
+        },
+        onError: function (result: any) {
+          window.location.href = `/payment/failed?order_id=${result.order_id}`;
+        },
+      });
+    }
+  }, [generatePaymentState]);
 
   return (
     <Card className="w-full shadow-sm">
@@ -65,6 +104,22 @@ export default function Summary({
             <p className="text-lg font-semibold">Total</p>
             <p className="text-lg font-semibold">{convertIDR(grandTotal)}</p>
           </div>
+          {order?.status === "proccess" && (
+            <Button
+              type="submit"
+              onClick={handleGeneratePayment}
+              disabled={
+                !isAllServed || isPendingGeneratePayment || grandTotal === 0
+              }
+              className="w-full font-semibold bg-teal-500 hover:bg-teal-600 text-white cursor-pointer disabled:bg-gray-500"
+            >
+              {isPendingGeneratePayment ? (
+                <Loader2 className="animate-spin" />
+              ) : (
+                "Pay"
+              )}
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

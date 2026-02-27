@@ -1,17 +1,17 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { CheckCircle, XCircle, Loader } from "lucide-react";
+import { createClientSupabase } from "@/lib/supabase/default";
 
 export default function PaymentStatus() {
   const searchParams = useSearchParams();
   const order_id = searchParams.get("order_id");
 
-  const supabase = createClient();
+  const supabase = createClientSupabase();
 
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -19,7 +19,7 @@ export default function PaymentStatus() {
   useEffect(() => {
     if (!order_id) return;
 
-    const fetchStatus = async () => {
+    const fetchInitialStatus = async () => {
       const { data } = await supabase
         .from("orders")
         .select("status")
@@ -28,13 +28,32 @@ export default function PaymentStatus() {
 
       if (data) {
         setStatus(data.status);
+        setLoading(false);
       }
-
-      setLoading(false);
     };
 
-    fetchStatus();
-  }, [order_id]);
+    fetchInitialStatus();
+
+    const channel = supabase
+      .channel("orders-status")
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "orders",
+          filter: `order_id=eq.${order_id}`,
+        },
+        (payload) => {
+          setStatus(payload.new.status);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [order_id, status]);
 
   if (loading) {
     return (
@@ -65,6 +84,12 @@ export default function PaymentStatus() {
         <Link href="/order">
           <Button>Back To Order</Button>
         </Link>
+      </div>
+    );
+  } else {
+    return (
+      <div className="flex items-center">
+        <h1>{status}</h1>
       </div>
     );
   }

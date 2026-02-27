@@ -15,7 +15,9 @@ Deno.serve(async (req) => {
     const serverKey = Deno.env.get("MIDTRANS_SERVER_KEY")!;
 
     const encoder = new TextEncoder();
-    const data = encoder.encode(order_id + status_code + gross_amount + serverKey);
+    const data = encoder.encode(
+      order_id + status_code + gross_amount + serverKey,
+    );
 
     const hashBuffer = await crypto.subtle.digest("SHA-512", data);
 
@@ -30,7 +32,7 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
     let newStatus = "pending";
@@ -43,23 +45,33 @@ Deno.serve(async (req) => {
       newStatus = "failed";
     }
 
-    const{data}=await supabase
+    const { data: order, error: orderError } = await supabase
       .from("orders")
       .update({ status: newStatus })
-      .eq("order_id", order_id).select().single()
+      .eq("order_id", order_id)
+      .select()
+      .single();
 
-      if (data){
-        await supabase
-      .from("tables")
-      .update({ status: 'available' })
-      .eq("id", data.table_id)
+    if (orderError) {
+      console.error("Order update error:", orderError);
+      return new Response("Order update failed", { status: 500 });
+    }
+
+    if (newStatus === "settled" && order?.table_id) {
+      const { error: tableError } = await supabase
+        .from("tables")
+        .update({ status: "available" })
+        .eq("id", order.table_id);
+
+      if (tableError) {
+        console.error("Table update error:", tableError);
+        return new Response("Table update failed", { status: 500 });
       }
-
-
+    }
 
     return new Response("OK", { status: 200 });
   } catch (err) {
-    console.error(err);
+    console.error("Webhook error:", err);
     return new Response("Server Error", { status: 500 });
   }
 });

@@ -56,7 +56,7 @@ export default function OrderManagement() {
           { count: "exact" },
         )
         .range((currentPage - 1) * currentLimit, currentPage * currentLimit - 1)
-        .order("created_at");
+        .order("created_at", { ascending: false });
 
       if (currentSearch) {
         query.or(

@@ -8,7 +8,7 @@ Deno.serve(async (req) => {
     const body = JSON.parse(raw);
 
     const snap = new Midtrans.Snap({
-      isProduction: false, // ubah ke true kalau production
+      isProduction: false, 
       serverKey: Deno.env.get("MIDTRANS_SERVER_KEY"),
     });
 
@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
   },
   callbacks: {
     finish: body.finishUrl,
-    notification:
+    notification_url:
       "https://gxdtcyyjkqltlnwjzncl.supabase.co/functions/v1/midtrans-webhook",
   },
 };

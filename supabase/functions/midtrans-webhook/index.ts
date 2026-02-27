@@ -43,10 +43,17 @@ Deno.serve(async (req) => {
       newStatus = "failed";
     }
 
-    await supabase
+    const{data}=await supabase
       .from("orders")
       .update({ status: newStatus })
-      .eq("order_id", order_id);
+      .eq("order_id", order_id).select().single()
+
+      if (data){
+        await supabase
+      .from("tables")
+      .update({ status: 'available' })
+      .eq("id", data.table_id)
+      }
 
 
 

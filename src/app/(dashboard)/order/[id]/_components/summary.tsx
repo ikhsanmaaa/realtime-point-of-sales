@@ -1,3 +1,5 @@
+"use client";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +12,7 @@ import { generatePayment } from "../../action";
 import { INITIAL_STATE_GENERATE_PAYMENT } from "@/constants/order-constant";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { useAuthStore } from "@/stores/auth-store";
 
 export default function Summary({
   order,
@@ -27,6 +30,8 @@ export default function Summary({
     | undefined;
   id: string;
 }) {
+  const profile = useAuthStore((state) => state.profile);
+
   const { totalPrice, service, tax, grandTotal } = usePricing(orderMenu);
 
   const isAllServed = useMemo(() => {
@@ -104,7 +109,7 @@ export default function Summary({
             <p className="text-lg font-semibold">Total</p>
             <p className="text-lg font-semibold">{convertIDR(grandTotal)}</p>
           </div>
-          {order?.status === "proccess" && (
+          {order?.status === "proccess" && profile.role !== "kitchen" && (
             <Button
               type="submit"
               onClick={handleGeneratePayment}

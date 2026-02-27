@@ -1,4 +1,4 @@
-import Midtrans from "npm:midtrans-client";
+import Midtrans from "npm:midtrans-client@1.3.1";
 
 Deno.serve(async (req) => {
   try {

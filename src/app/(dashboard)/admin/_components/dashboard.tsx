@@ -23,7 +23,7 @@ export default function Dashboard() {
   } = useQuery({
     queryKey: ["orders-per-day"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("orders")
         .select("created_at")
         .gte("created_at", lastWeek.toISOString())
@@ -32,7 +32,7 @@ export default function Dashboard() {
       const counts: Record<string, number> = {};
       (data ?? []).forEach((order: any) => {
         const date = new Date(order.created_at).toISOString().slice(0, 10);
-        counts[date] = counts[date] || 0 + 1;
+        counts[date] = (counts[date] || 0) + 1;
       });
 
       return Object.entries(counts).map(([name, total]) => ({ name, total }));
@@ -48,8 +48,8 @@ export default function Dashboard() {
         <CardHeader>
           <CardTitle>Order Created Per Week</CardTitle>
           <CardDescription>
-            Showing orders from {lastWeek.toLocaleDateString()} to{" "}
-            {new Date().toLocaleDateString()}
+            Showing orders from {lastWeek.toLocaleDateString("id-ID")} to{" "}
+            {new Date().toLocaleDateString("id-ID")}
           </CardDescription>
         </CardHeader>
         <div className="w-full h-64 p-6">

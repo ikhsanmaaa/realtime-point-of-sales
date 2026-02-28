@@ -114,7 +114,9 @@ export default function Summary({
               type="submit"
               onClick={handleGeneratePayment}
               disabled={
-                !isAllServed || isPendingGeneratePayment || grandTotal === 0
+                !isAllServed ||
+                isPendingGeneratePayment ||
+                orderMenu?.length === 0
               }
               className="w-full font-semibold bg-teal-500 hover:bg-teal-600 text-white cursor-pointer disabled:bg-gray-500"
             >

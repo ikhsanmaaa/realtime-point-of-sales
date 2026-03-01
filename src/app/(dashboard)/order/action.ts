@@ -4,17 +4,20 @@ import midtrans from "midtrans-client";
 import { createClient } from "@/lib/supabase/server";
 import { FormState } from "@/types/general";
 import { Cart, OrderFormState } from "@/types/order";
-import { orderFormSchema } from "@/validations/order-validation";
 import { redirect } from "next/navigation";
 import z from "zod";
 import { environment } from "@/configs/environment";
 import { headers } from "next/headers";
+import {
+  orderDineInFormSchema,
+  orderTakeAwayFormSchema,
+} from "@/validations/order-validation";
 
 export async function createOrder(
   prevState: OrderFormState,
   formData: FormData,
 ) {
-  const validatedFields = orderFormSchema.safeParse({
+  const validatedFields = orderDineInFormSchema.safeParse({
     customer_name: formData.get("customer_name"),
     table_id: formData.get("table_id"),
     status: formData.get("status"),
@@ -76,6 +79,53 @@ export async function createOrder(
   };
 }
 
+export async function createOrderTakeAway(
+  prevState: OrderFormState,
+  formData: FormData,
+) {
+  const validatedFields = orderTakeAwayFormSchema.safeParse({
+    customer_name: formData.get("customer_name"),
+    table_id: formData.get("table_id"),
+    status: formData.get("status"),
+  });
+
+  if (!validatedFields.success) {
+    const formatted = z.treeifyError(validatedFields.error);
+
+    return {
+      errors: {
+        customer_name: formatted.properties?.customer_name?.errors,
+        _form: [],
+      },
+    };
+  }
+
+  const supabase = await createClient();
+
+  const orderId = `CAFEAPP-${Date.now()}`;
+
+  const { error } = await supabase.from("orders").insert({
+    order_id: orderId,
+    customer_name: validatedFields.data.customer_name,
+    status: "proccess",
+  });
+
+  if (error) {
+    return {
+      status: "error",
+      errors: {
+        ...prevState.errors,
+
+        _form: [error.message],
+      },
+    };
+  }
+
+  return {
+    status: "success",
+  };
+}
+
 export async function updateReservation(
   prevState: FormState,
   formData: FormData,
@@ -128,7 +178,7 @@ export async function addOrderItem(
 ) {
   const supabase = await createClient();
 
-  const payload = data.items.map(({ total, menu, ...item }) => item);
+  const payload = data.items.map(({ menu, ...item }) => item);
 
   const { error } = await supabase.from("orders_menus").insert(payload);
 

@@ -26,6 +26,17 @@ export const INITIAL_STATE_ORDER = {
   },
 };
 
+export const INITIAL_CREATE_ORDER_TAKEAWAY_FORM = {
+  customer_name: "",
+};
+
+export const INITIAL_STATE_ORDER_TAKEAWAY = {
+  status: "idle",
+  errors: {
+    customer_name: [],
+    _form: [],
+  },
+};
 export const STATUS_CREATE_ORDER = [
   {
     value: "reserved",
@@ -72,9 +83,9 @@ export const FILTER_MENU = [
   },
 ];
 
-export const INITIAL_STATE_GENERATE_PAYMENT={
+export const INITIAL_STATE_GENERATE_PAYMENT = {
   ...INITIAL_STATE_ACTION,
-  data:{
-    payment_token:''
-  }
-}
+  data: {
+    payment_token: "",
+  },
+};

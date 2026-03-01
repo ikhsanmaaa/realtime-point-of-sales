@@ -36,7 +36,18 @@ export default function CardMenu({
       </CardContent>
 
       <CardFooter className="p-4 pt-0 flex items-center justify-between">
-        <span className="text-lg font-bold">{convertIDR(menu.price)}</span>
+        <div>
+          {menu.discount > 0 && (
+            <span className="text-sm line-through text-muted-foreground">
+              {convertIDR(menu.price)}
+            </span>
+          )}
+          <span className="text-lg font-bold">
+            {menu.discount > 0
+              ? convertIDR(menu.price - (menu.price * menu.discount) / 100)
+              : convertIDR(menu.price)}
+          </span>
+        </div>
 
         <Button
           size="icon"

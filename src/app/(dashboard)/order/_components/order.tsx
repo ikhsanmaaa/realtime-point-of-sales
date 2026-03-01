@@ -10,7 +10,7 @@ import useDataTable from "@/hooks/use-data-table";
 import { cn } from "@/lib/utils";
 import { Table } from "@/validations/table-validation";
 import { useQuery } from "@tanstack/react-query";
-import { Ban, Link2Icon, ScrollText } from "lucide-react";
+import { Ban, Link2Icon, Package, ScrollText, Utensils } from "lucide-react";
 import {
   startTransition,
   useActionState,
@@ -19,12 +19,20 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import DialogCreateOrder from "./dialog-create-order";
 import { updateReservation } from "../action";
 import { INITIAL_STATE_ACTION } from "@/constants/general-constant";
 import Link from "next/link";
 import { useAuthStore } from "@/stores/auth-store";
 import { createClientSupabase } from "@/lib/supabase/default";
+import DialogCreateOrderDineIn from "./dialog-create-order-dine-in";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import DialogCreateOrderTakeAway from "./dialog-create-order-take-away";
 
 export default function OrderManagement() {
   const profile = useAuthStore((state) => state.profile);
@@ -110,15 +118,6 @@ export default function OrderManagement() {
     };
   });
 
-  const [selectedAction, setSelectedAction] = useState<{
-    data: Table;
-    type: "update" | "delete";
-  } | null>(null);
-
-  const handleChangeAction = (open: boolean) => {
-    if (!open) setSelectedAction(null);
-  };
-
   const totalPages = useMemo(() => {
     return orders && orders.count !== null
       ? Math.ceil(orders.count / currentLimit)
@@ -192,7 +191,7 @@ export default function OrderManagement() {
         currentLimit * (currentPage - 1) + index + 1,
         order.order_id,
         order.customer_name,
-        (order.tables as unknown as { name: string }).name,
+        (order.tables as unknown as { name: string })?.name || "Takeaway",
         <div
           className={cn("px-2 py-1 rounded-full text-white w-fit capitalize", {
             "bg-lime-500": order.status === "settled",
@@ -211,7 +210,7 @@ export default function OrderManagement() {
                   action: () =>
                     item.action(
                       order.id,
-                      (order.tables as unknown as { id: string }).id,
+                      (order.tables as unknown as { id: string })?.id,
                     ),
                 }))
               : [
@@ -234,6 +233,8 @@ export default function OrderManagement() {
     });
   }, [orders]);
 
+  const [openCreateOrder, setOpenCreateOrder] = useState(false);
+
   return (
     <div className="w-full">
       <div className="flex flex-col lg:flex-row mb-4 gap-2 justify-between w-full">
@@ -243,14 +244,43 @@ export default function OrderManagement() {
             placeholder="Search by name or status"
             onChange={(e) => handleChangeSearch(e.target.value)}
           />
-          <Dialog>
-            {profile.role !== "kitchen" && (
-              <DialogTrigger asChild>
-                <Button variant="outline">Create</Button>
-              </DialogTrigger>
-            )}
-            <DialogCreateOrder tables={tables} />
-          </Dialog>
+          <DropdownMenu
+            open={openCreateOrder}
+            onOpenChange={setOpenCreateOrder}
+          >
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">Create</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel className="font-bold">
+                Create Order
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <Dialog>
+                {profile.role !== "kitchen" && (
+                  <DialogTrigger className="flex items-center gap-2 text-sm p-2 w-full rounded-md hover:bg-muted ">
+                    <Utensils className="size-4" />
+                    Dine In
+                  </DialogTrigger>
+                )}
+                <DialogCreateOrderDineIn
+                  tables={tables}
+                  closeDialog={() => setOpenCreateOrder(false)}
+                />
+              </Dialog>
+              <Dialog>
+                {profile.role !== "kitchen" && (
+                  <DialogTrigger className="flex items-center gap-2 text-sm p-2 w-full rounded-md hover:bg-muted ">
+                    <Package className="size-4" />
+                    Takeaway
+                  </DialogTrigger>
+                )}
+                <DialogCreateOrderTakeAway
+                  closeDialog={() => setOpenCreateOrder(false)}
+                />
+              </Dialog>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
       <DataTable

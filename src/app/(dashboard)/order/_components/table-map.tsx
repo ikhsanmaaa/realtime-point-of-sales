@@ -22,9 +22,11 @@ export function TableNode({
     capacity: number;
     status: string;
     order?: {
+      id: string;
       order_id: string;
       customer_name: string;
     };
+    handleReservation: (id: string, table_id: string, status: string) => void;
   };
 }) {
   const [openCreateOrder, setOpenCreateOrder] = useState(false);
@@ -68,12 +70,40 @@ export function TableNode({
               <p className="text-xs text-muted-foreground">
                 Customer : {data.order.customer_name}
               </p>
-              <Link
-                className="mt-2 w-full"
-                href={`order/${data.order.order_id}`}
-              >
-                <Button>View Detail Order</Button>
-              </Link>
+              {data.status === "unavailable" ? (
+                <Link
+                  className="mt-2 w-full"
+                  href={`order/${data.order.order_id}`}
+                >
+                  <Button>View Detail Order</Button>
+                </Link>
+              ) : (
+                <div className="w-full flex gap-2">
+                  <Button
+                    variant="destructive"
+                    onClick={() =>
+                      data.handleReservation(
+                        `${data?.order?.id}`,
+                        data.id,
+                        "canceled",
+                      )
+                    }
+                  >
+                    Canceled
+                  </Button>
+                  <Button
+                    onClick={() =>
+                      data.handleReservation(
+                        `${data?.order?.id}`,
+                        data.id,
+                        "proccess",
+                      )
+                    }
+                  >
+                    Proccess
+                  </Button>
+                </div>
+              )}
             </div>
           ) : (
             <Dialog open={openCreateOrder} onOpenChange={setOpenCreateOrder}>
@@ -98,35 +128,53 @@ export function TableNode({
 export default function TableMap({
   tables,
   activeOrders,
+  handleReservation,
 }: {
   tables: TableMapType[];
   activeOrders: {
+    id: string;
     order_id: string;
     customer_name: string;
-    tables: unknown;
+    status: string;
+    tables: {
+      id: string;
+      name: string;
+    }[];
   }[];
+  handleReservation: (id: string, table_id: string, status: string) => void;
 }) {
   const nodeTypes = {
     tableNode: TableNode,
   };
 
+  console.log(tables);
   const initialNodes = useMemo(() => {
-    return tables.map((table) => ({
-      id: table.id,
-      position: { x: table.position_x, y: table.position_y },
-      data: {
-        id: table.id,
-        label: table.name,
-        capacity: table.capacity,
-        status: table.status,
-        order: activeOrders.find((order: any) => {
-          return (order.tables as unknown as { id: string })?.id === table.id;
-        }),
-      },
-      type: "tableNode",
-    }));
-  }, [tables]);
+    return tables.map((table) => {
+      const order = activeOrders.find((order: any) => {
+        return (order.tables as { id: string })?.id === table.id;
+      });
 
+      const computedStatus = order
+        ? order.status === "reserved"
+          ? "reserved"
+          : "unavailable"
+        : table.status;
+
+      return {
+        id: table.id,
+        position: { x: table.position_x, y: table.position_y },
+        data: {
+          id: table.id,
+          label: table.name,
+          capacity: table.capacity,
+          status: computedStatus,
+          order,
+          handleReservation,
+        },
+        type: "tableNode",
+      };
+    });
+  }, [tables, activeOrders, handleReservation]);
   return (
     <div className="w-full h-[80vh] border rounded-lg ">
       <ReactFlow

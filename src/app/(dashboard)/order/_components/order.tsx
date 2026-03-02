@@ -63,7 +63,7 @@ export default function OrderManagement() {
           { count: "exact" },
         )
         .range((currentPage - 1) * currentLimit, currentPage * currentLimit - 1)
-        .order("created_at", { ascending: false });
+        .order("updated_at", { ascending: true });
 
       if (currentSearch) {
         query.or(
@@ -145,8 +145,8 @@ export default function OrderManagement() {
   });
 
   useEffect(() => {
-    const channel = supabaseDefault
-      .channel("change-order")
+    const orderChannel = supabaseDefault
+      .channel("orders-change")
       .on(
         "postgres_changes",
         {
@@ -156,14 +156,29 @@ export default function OrderManagement() {
         },
         () => {
           refetchOrders();
-          refetchTables();
           refetchActiveOrders();
         },
       )
       .subscribe();
 
+    const tableChannel = supabaseDefault
+      .channel("tables-change")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "tables",
+        },
+        () => {
+          refetchTables();
+        },
+      )
+      .subscribe();
+
     return () => {
-      supabaseDefault.removeChannel(channel);
+      supabaseDefault.removeChannel(orderChannel);
+      supabaseDefault.removeChannel(tableChannel);
     };
   }, []);
 
@@ -204,8 +219,6 @@ export default function OrderManagement() {
     }
     if (reservedState?.status === "success") {
       toast.success("Update Reservation Success");
-      refetchOrders();
-      refetchTables();
     }
   }, [reservedState]);
 
@@ -357,6 +370,13 @@ export default function OrderManagement() {
           <TableMap
             tables={tables1stFloor || []}
             activeOrders={activeOrders || []}
+            handleReservation={(
+              id: string,
+              table_id: string,
+              status: string,
+            ) => {
+              handleReservation({ id, table_id, status });
+            }}
           />
         </TabsContent>
 
@@ -364,6 +384,13 @@ export default function OrderManagement() {
           <TableMap
             tables={tables2ndFloor || []}
             activeOrders={activeOrders || []}
+            handleReservation={(
+              id: string,
+              table_id: string,
+              status: string,
+            ) => {
+              handleReservation({ id, table_id, status });
+            }}
           />
         </TabsContent>
       </Tabs>

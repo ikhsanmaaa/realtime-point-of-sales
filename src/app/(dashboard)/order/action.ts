@@ -145,7 +145,7 @@ export async function updateReservation(
         status:
           formData.get("status") === "proccess" ? "unavailable" : "available",
       })
-      .eq("id", formData.get("id")),
+      .eq("id", formData.get("table_id")),
   ]);
 
   const orderError = orderResult.error;

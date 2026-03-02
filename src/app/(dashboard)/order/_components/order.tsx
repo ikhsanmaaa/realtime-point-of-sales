@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { HEADER_ORDER_MANAGEMENT } from "@/constants/order-constant";
 import useDataTable from "@/hooks/use-data-table";
 import { cn } from "@/lib/utils";
-import { Table } from "@/validations/table-validation";
 import { useQuery } from "@tanstack/react-query";
 import { Ban, Link2Icon, Package, ScrollText, Utensils } from "lucide-react";
 import {
@@ -23,7 +22,6 @@ import { updateReservation } from "../action";
 import { INITIAL_STATE_ACTION } from "@/constants/general-constant";
 import Link from "next/link";
 import { useAuthStore } from "@/stores/auth-store";
-import { createClientSupabase } from "@/lib/supabase/default";
 import DialogCreateOrderDineIn from "./dialog-create-order-dine-in";
 import {
   DropdownMenu,
@@ -35,11 +33,10 @@ import {
 import DialogCreateOrderTakeAway from "./dialog-create-order-take-away";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TableMap from "./table-map";
+import { supabaseDefault } from "@/lib/supabase/default";
 
 export default function OrderManagement() {
   const profile = useAuthStore((state) => state.profile);
-
-  const supabase = createClientSupabase();
 
   const {
     currentPage,
@@ -57,7 +54,7 @@ export default function OrderManagement() {
   } = useQuery({
     queryKey: ["orders", currentPage, currentLimit, currentSearch],
     queryFn: async () => {
-      const query = supabase
+      const query = supabaseDefault
         .from("orders")
         .select(
           `
@@ -88,7 +85,7 @@ export default function OrderManagement() {
   const { data: tables, refetch: refetchTables } = useQuery({
     queryKey: ["tables"],
     queryFn: async () => {
-      const result = await supabase
+      const result = await supabaseDefault
         .from("tables")
         .select("*")
         .order("created_at")
@@ -101,7 +98,7 @@ export default function OrderManagement() {
   const { data: tables1stFloor } = useQuery({
     queryKey: ["tables-1st-floor"],
     queryFn: async () => {
-      const result = await supabase
+      const result = await supabaseDefault
         .from("tables")
         .select("*")
         .eq("floor", "1F");
@@ -113,7 +110,7 @@ export default function OrderManagement() {
   const { data: tables2ndFloor } = useQuery({
     queryKey: ["tables-2nd-floor"],
     queryFn: async () => {
-      const result = await supabase
+      const result = await supabaseDefault
         .from("tables")
         .select("*")
         .eq("floor", "2F");
@@ -125,7 +122,7 @@ export default function OrderManagement() {
   const { data: activeOrders, refetch: refetchActiveOrders } = useQuery({
     queryKey: ["active-orders"],
     queryFn: async () => {
-      const query = supabase
+      const query = supabaseDefault
         .from("orders")
         .select(
           `
@@ -148,7 +145,7 @@ export default function OrderManagement() {
   });
 
   useEffect(() => {
-    const channel = supabase
+    const channel = supabaseDefault
       .channel("change-order")
       .on(
         "postgres_changes",
@@ -166,7 +163,7 @@ export default function OrderManagement() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabaseDefault.removeChannel(channel);
     };
   }, []);
 

@@ -7,7 +7,6 @@ import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { HEADER_TABLE_MANAGEMENT } from "@/constants/table-constant";
 import useDataTable from "@/hooks/use-data-table";
-import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { Table } from "@/validations/table-validation";
 import { useQuery } from "@tanstack/react-query";
@@ -17,10 +16,9 @@ import { toast } from "sonner";
 import DialogCreateTable from "./dialog-create-table";
 import DialogUpdateTable from "./dialog-update-table";
 import DialogDeleteTable from "./dialog-delete-table";
+import { supabaseDefault } from "@/lib/supabase/default";
 
 export default function TableManagement() {
-  const supabase = createClient();
-
   const {
     currentPage,
     currentLimit,
@@ -37,7 +35,7 @@ export default function TableManagement() {
   } = useQuery({
     queryKey: ["tables", currentPage, currentLimit, currentSearch],
     queryFn: async () => {
-      const query = supabase
+      const query = supabaseDefault
         .from("tables")
         .select("*", { count: "exact" })
         .range((currentPage - 1) * currentLimit, currentPage * currentLimit - 1)

@@ -9,14 +9,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { createClientSupabase } from "@/lib/supabase/default";
+import { supabaseDefault } from "@/lib/supabase/default";
 import { convertIDR } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 
 export default function Dashboard() {
-  const supabase = createClientSupabase();
-
   const lastWeek = new Date();
   lastWeek.setDate(lastWeek.getDate() - 6);
   lastWeek.setHours(0, 0, 0, 0);
@@ -24,7 +22,7 @@ export default function Dashboard() {
   const { data: orders } = useQuery({
     queryKey: ["orders-per-day"],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data } = await supabaseDefault
         .from("orders")
         .select("created_at")
         .eq("status", "settled")
@@ -52,12 +50,12 @@ export default function Dashboard() {
   const { data: revenue } = useQuery({
     queryKey: ["revenue"],
     queryFn: async () => {
-      const { data: dataThisMonth } = await supabase
+      const { data: dataThisMonth } = await supabaseDefault
         .from("orders_menus")
         .select("nominal,created_at")
         .gte("created_at", thisMonth);
 
-      const { data: dataLastMonth } = await supabase
+      const { data: dataLastMonth } = await supabaseDefault
         .from("orders_menus")
         .select("nominal,created_at")
         .gte("created_at", lastMonth)
@@ -104,7 +102,7 @@ export default function Dashboard() {
   const { data: totalOrder } = useQuery({
     queryKey: ["total-order"],
     queryFn: async () => {
-      const { count } = await supabase
+      const { count } = await supabaseDefault
         .from("orders")
         .select("id", { count: "exact" })
         .eq("status", "settled")
@@ -117,7 +115,7 @@ export default function Dashboard() {
   const { data: lastOrder } = useQuery({
     queryKey: ["last-order"],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data } = await supabaseDefault
         .from("orders")
         .select("id,order_id,customer_name,status,tables(name,id)")
         .eq("status", "proccess")

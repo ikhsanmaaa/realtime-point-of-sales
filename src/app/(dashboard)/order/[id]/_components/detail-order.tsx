@@ -21,8 +21,8 @@ import { EllipsisVertical } from "lucide-react";
 import { updateStatusOrderItem } from "../../action";
 import { INITIAL_STATE_ACTION } from "@/constants/general-constant";
 import { useAuthStore } from "@/stores/auth-store";
-import { createClientSupabase } from "@/lib/supabase/default";
 import Receipt from "./receipt";
+import { supabaseDefault } from "@/lib/supabase/default";
 
 declare global {
   interface Window {
@@ -32,7 +32,6 @@ declare global {
 
 export default function DetailOrder({ id }: { id: string }) {
   const profile = useAuthStore((state) => state.profile);
-  const supabase = createClientSupabase();
 
   const { currentPage, currentLimit, handleChangeLimit, handleChangePage } =
     useDataTable();
@@ -40,7 +39,7 @@ export default function DetailOrder({ id }: { id: string }) {
   const { data: order } = useQuery({
     queryKey: ["order", id],
     queryFn: async () => {
-      const result = await supabase
+      const result = await supabaseDefault
         .from("orders")
         .select(
           "id,customer_name,status,payment_token, tables(name,id),created_at",
@@ -61,7 +60,7 @@ export default function DetailOrder({ id }: { id: string }) {
   useEffect(() => {
     if (!order?.id) return;
 
-    const channel = supabase
+    const channel = supabaseDefault
       .channel("change-order")
       .on(
         "postgres_changes",
@@ -78,7 +77,7 @@ export default function DetailOrder({ id }: { id: string }) {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabaseDefault.removeChannel(channel);
     };
   }, [order?.id]);
 
@@ -89,7 +88,7 @@ export default function DetailOrder({ id }: { id: string }) {
   } = useQuery({
     queryKey: ["orders_menu", order?.id, currentPage, currentLimit],
     queryFn: async () => {
-      const result = await supabase
+      const result = await supabaseDefault
         .from("orders_menus")
         .select("*, menus(id,name,image_url,price)", { count: "exact" })
         .eq("order_id", order?.id)

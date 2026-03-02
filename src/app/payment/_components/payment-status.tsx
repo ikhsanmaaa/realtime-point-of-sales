@@ -5,13 +5,11 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { CheckCircle, XCircle, Loader } from "lucide-react";
-import { createClientSupabase } from "@/lib/supabase/default";
+import { supabaseDefault } from "@/lib/supabase/default";
 
 export default function PaymentStatus() {
   const searchParams = useSearchParams();
   const order_id = searchParams.get("order_id");
-
-  const supabase = createClientSupabase();
 
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -20,7 +18,7 @@ export default function PaymentStatus() {
     if (!order_id) return;
 
     const fetchInitialStatus = async () => {
-      const { data } = await supabase
+      const { data } = await supabaseDefault
         .from("orders")
         .select("status")
         .eq("order_id", order_id)
@@ -34,7 +32,7 @@ export default function PaymentStatus() {
 
     fetchInitialStatus();
 
-    const channel = supabase
+    const channel = supabaseDefault
       .channel("orders-status")
       .on(
         "postgres_changes",
@@ -51,7 +49,7 @@ export default function PaymentStatus() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabaseDefault.removeChannel(channel);
     };
   }, [order_id, status]);
 

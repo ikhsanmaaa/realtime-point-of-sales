@@ -18,7 +18,7 @@ Live Demo: https://realtime-point-of-sales-seven.vercel.app/
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 **Frontend & Framework**
 - Next.js (React)

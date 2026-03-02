@@ -33,6 +33,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import DialogCreateOrderTakeAway from "./dialog-create-order-take-away";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import TableMap from "./table-map";
 
 export default function OrderManagement() {
   const profile = useAuthStore((state) => state.profile);
@@ -96,6 +98,55 @@ export default function OrderManagement() {
     },
   });
 
+  const { data: tables1stFloor } = useQuery({
+    queryKey: ["tables-1st-floor"],
+    queryFn: async () => {
+      const result = await supabase
+        .from("tables")
+        .select("*")
+        .eq("floor", "1F");
+
+      return result.data;
+    },
+  });
+
+  const { data: tables2ndFloor } = useQuery({
+    queryKey: ["tables-2nd-floor"],
+    queryFn: async () => {
+      const result = await supabase
+        .from("tables")
+        .select("*")
+        .eq("floor", "2F");
+
+      return result.data;
+    },
+  });
+
+  const { data: activeOrders, refetch: refetchActiveOrders } = useQuery({
+    queryKey: ["active-orders"],
+    queryFn: async () => {
+      const query = supabase
+        .from("orders")
+        .select(
+          `
+            id,order_id,customer_name,status,payment_token, tables(name,id)
+            `,
+        )
+        .in("status", ["proccess", "reserved"])
+
+        .order("created_at");
+
+      const result = await query;
+
+      if (result.error)
+        toast.error("Get Active Order data failed", {
+          description: result.error.message,
+        });
+
+      return result.data;
+    },
+  });
+
   useEffect(() => {
     const channel = supabase
       .channel("change-order")
@@ -109,6 +160,7 @@ export default function OrderManagement() {
         () => {
           refetchOrders();
           refetchTables();
+          refetchActiveOrders();
         },
       )
       .subscribe();
@@ -116,7 +168,7 @@ export default function OrderManagement() {
     return () => {
       supabase.removeChannel(channel);
     };
-  });
+  }, []);
 
   const totalPages = useMemo(() => {
     return orders && orders.count !== null
@@ -237,62 +289,87 @@ export default function OrderManagement() {
 
   return (
     <div className="w-full">
-      <div className="flex flex-col lg:flex-row mb-4 gap-2 justify-between w-full">
-        <h1 className="text-2xl font-bold">Order Management</h1>
-        <div className="flex gap-2">
-          <Input
-            placeholder="Search by name or status"
-            onChange={(e) => handleChangeSearch(e.target.value)}
-          />
-          <DropdownMenu
-            open={openCreateOrder}
-            onOpenChange={setOpenCreateOrder}
-          >
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">Create</Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuLabel className="font-bold">
-                Create Order
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <Dialog>
-                {profile.role !== "kitchen" && (
-                  <DialogTrigger className="flex items-center gap-2 text-sm p-2 w-full rounded-md hover:bg-muted ">
-                    <Utensils className="size-4" />
-                    Dine In
-                  </DialogTrigger>
-                )}
-                <DialogCreateOrderDineIn
-                  tables={tables}
-                  closeDialog={() => setOpenCreateOrder(false)}
-                />
-              </Dialog>
-              <Dialog>
-                {profile.role !== "kitchen" && (
-                  <DialogTrigger className="flex items-center gap-2 text-sm p-2 w-full rounded-md hover:bg-muted ">
-                    <Package className="size-4" />
-                    Takeaway
-                  </DialogTrigger>
-                )}
-                <DialogCreateOrderTakeAway
-                  closeDialog={() => setOpenCreateOrder(false)}
-                />
-              </Dialog>
-            </DropdownMenuContent>
-          </DropdownMenu>
+      <Tabs defaultValue="list">
+        <div className="flex flex-col lg:flex-row mb-4 gap-2 justify-between w-full">
+          <h1 className="text-2xl font-bold">Order Management</h1>
+          <TabsList>
+            <TabsTrigger value="list">Order List</TabsTrigger>
+            <TabsTrigger value="1st">Table 1st Floor</TabsTrigger>
+            <TabsTrigger value="2nd">Table 2nd Floor</TabsTrigger>
+          </TabsList>
         </div>
-      </div>
-      <DataTable
-        header={HEADER_ORDER_MANAGEMENT}
-        isLoading={isLoading}
-        data={filterData}
-        totalPages={totalPages}
-        currentPage={currentPage}
-        currentLimit={currentLimit}
-        onChangePage={handleChangePage}
-        onChangeLimit={handleChangeLimit}
-      />
+
+        <TabsContent value="list">
+          <div className="flex gap-2 justify-between mb-4">
+            <Input
+              placeholder="Search by name or status"
+              onChange={(e) => handleChangeSearch(e.target.value)}
+              className="max-w-64"
+            />
+            <DropdownMenu
+              open={openCreateOrder}
+              onOpenChange={setOpenCreateOrder}
+            >
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">Create</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuLabel className="font-bold">
+                  Create Order
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <Dialog>
+                  {profile.role !== "kitchen" && (
+                    <DialogTrigger className="flex items-center gap-2 text-sm p-2 w-full rounded-md hover:bg-muted ">
+                      <Utensils className="size-4" />
+                      Dine In
+                    </DialogTrigger>
+                  )}
+                  <DialogCreateOrderDineIn
+                    tables={tables}
+                    closeDialog={() => setOpenCreateOrder(false)}
+                  />
+                </Dialog>
+                <Dialog>
+                  {profile.role !== "kitchen" && (
+                    <DialogTrigger className="flex items-center gap-2 text-sm p-2 w-full rounded-md hover:bg-muted ">
+                      <Package className="size-4" />
+                      Takeaway
+                    </DialogTrigger>
+                  )}
+                  <DialogCreateOrderTakeAway
+                    closeDialog={() => setOpenCreateOrder(false)}
+                  />
+                </Dialog>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <DataTable
+            header={HEADER_ORDER_MANAGEMENT}
+            isLoading={isLoading}
+            data={filterData}
+            totalPages={totalPages}
+            currentPage={currentPage}
+            currentLimit={currentLimit}
+            onChangePage={handleChangePage}
+            onChangeLimit={handleChangeLimit}
+          />
+        </TabsContent>
+
+        <TabsContent value="1st">
+          <TableMap
+            tables={tables1stFloor || []}
+            activeOrders={activeOrders || []}
+          />
+        </TabsContent>
+
+        <TabsContent value="2nd">
+          <TableMap
+            tables={tables2ndFloor || []}
+            activeOrders={activeOrders || []}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

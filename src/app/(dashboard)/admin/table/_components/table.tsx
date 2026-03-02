@@ -41,7 +41,7 @@ export default function TableManagement() {
         .from("tables")
         .select("*", { count: "exact" })
         .range((currentPage - 1) * currentLimit, currentPage * currentLimit - 1)
-        .order("created_at");
+        .order("name", { ascending: true });
 
       if (currentSearch) {
         query.or(

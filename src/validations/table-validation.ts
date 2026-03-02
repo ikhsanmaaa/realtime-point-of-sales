@@ -17,3 +17,8 @@ export const tableSchema = z.object({
 export type TableForm = z.infer<typeof tableFormSchema>;
 
 export type Table = z.infer<typeof tableSchema> & { id: string };
+
+export type TableMapType = Table & {
+  position_x: number;
+  position_y: number;
+};

@@ -53,7 +53,8 @@ const Receipt = ({
           <p>
             Table No:{" "}
             <span className="font-bold">
-              {(order?.tables as unknown as { name: string }).name}
+              {(order?.tables as unknown as { name: string })?.name ||
+                "Takeaway"}
             </span>
           </p>
           <p>

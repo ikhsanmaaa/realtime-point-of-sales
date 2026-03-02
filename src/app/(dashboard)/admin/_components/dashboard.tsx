@@ -65,14 +65,14 @@ export default function Dashboard() {
 
       const totalRevenueThisMonth = (dataThisMonth ?? []).reduce(
         (sum, item) => {
-          return item.nominal;
+          return sum + item.nominal;
         },
         0,
       );
 
       const totalRevenueLastMonth = (dataLastMonth ?? []).reduce(
         (sum, item) => {
-          return item.nominal;
+          return sum + item.nominal;
         },
         0,
       );

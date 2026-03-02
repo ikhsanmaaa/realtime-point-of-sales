@@ -27,13 +27,20 @@ import FormInput from "@/components/common/form-input";
 import FormSelect from "@/components/common/form-select";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 export default function DialogCreateOrderDineIn({
   tables,
   closeDialog,
+  selectedTable,
 }: {
-  tables: Table[] | undefined | null;
+  tables?: Table[] | undefined | null;
   closeDialog: () => void;
+  selectedTable?: {
+    id: string;
+    name: string;
+  };
 }) {
   const form = useForm<OrderForm>({
     resolver: zodResolver(orderDineInFormSchema),
@@ -52,6 +59,12 @@ export default function DialogCreateOrderDineIn({
       createOrderAction(formData);
     });
   });
+
+  useEffect(() => {
+    if (selectedTable) {
+      form.setValue("table_id", `${selectedTable.id}`);
+    }
+  }, [selectedTable]);
 
   useEffect(() => {
     if (createOrderState?.status === "error") {
@@ -81,16 +94,24 @@ export default function DialogCreateOrderDineIn({
               label="Customer name"
               placeholder="insert customer name here"
             />
-            <FormSelect
-              form={form}
-              name={"table_id"}
-              label="Table"
-              selectItem={(tables ?? []).map((table: Table) => ({
-                value: `${table.id}`,
-                label: `${table.name}-${table.status} (${table.capacity})`,
-                disabled: table.status !== "available",
-              }))}
-            />
+            {selectedTable ? (
+              <div className="space-y-2">
+                <Label>Table</Label>
+                <Input name="table_id" value={selectedTable.name} disabled />
+              </div>
+            ) : (
+              <FormSelect
+                form={form}
+                name={"table_id"}
+                label="Table"
+                selectItem={(tables ?? []).map((table: Table) => ({
+                  value: `${table.id}`,
+                  label: `${table.name}-${table.status} (${table.capacity})`,
+                  disabled: table.status !== "available",
+                }))}
+              />
+            )}
+
             <FormSelect
               form={form}
               name={"status"}

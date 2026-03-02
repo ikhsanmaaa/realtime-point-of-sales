@@ -42,7 +42,7 @@ export default function MenuManagement() {
         .from("menus")
         .select("*", { count: "exact" })
         .range((currentPage - 1) * currentLimit, currentPage * currentLimit - 1)
-        .order("created_at");
+        .order("updated_at", { ascending: false });
 
       if (currentSearch) {
         query.or(
@@ -148,7 +148,7 @@ export default function MenuManagement() {
     <div className="w-full">
       <div className="flex flex-col lg:flex-row mb-4 gap-2 justify-between w-full">
         <h1 className="text-2xl font-bold">Menu Management</h1>
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-1/3">
           <Input
             placeholder="Search by name or category"
             onChange={(e) => handleChangeSearch(e.target.value)}

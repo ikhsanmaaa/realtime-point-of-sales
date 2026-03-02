@@ -36,7 +36,7 @@ export default function CardMenu({
       </CardContent>
 
       <CardFooter className="p-4 pt-0 flex items-center justify-between">
-        <div>
+        <div className="flex flex-col">
           {menu.discount > 0 && (
             <span className="text-sm line-through text-muted-foreground">
               {convertIDR(menu.price)}

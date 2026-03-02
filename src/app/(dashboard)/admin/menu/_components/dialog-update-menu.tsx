@@ -1,8 +1,3 @@
-import { INITIAL_STATE_UPDATE_USER } from "@/constants/auth-constant";
-import {
-  UpdateUserForm,
-  updateUserSchema,
-} from "@/validations/auth-validation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { startTransition, useActionState, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -77,7 +72,7 @@ export default function DialogUpdateMenu({
       form.setValue("name", currentData.name);
       form.setValue("description", currentData.description);
       form.setValue("price", currentData.price.toString());
-      form.setValue("discount", currentData.price.toString());
+      form.setValue("discount", currentData.discount.toString());
       form.setValue("category", currentData.category);
       form.setValue("is_available", currentData.is_available.toString());
       form.setValue("image_url", currentData.image_url);

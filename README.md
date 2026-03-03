@@ -5,9 +5,9 @@ This project simulates a modern cafe ordering system with live order updates, pa
 
 Live Demo: https://realtime-point-of-sales-seven.vercel.app/
 
-login info info
-email: webdevproject01@gmail.com
-password: admin1
+## login info
+- email: webdevproject01@gmail.com
+- password: admin1
 ---
 
 ##  Features
@@ -61,6 +61,15 @@ This project was built to simulate a real-world POS system and to deepen my unde
 
 ##Architecture Overview
 <img width="1365" height="598" alt="image" src="https://github.com/user-attachments/assets/224a8c92-1d20-48ae-a105-e7e861762e99" />
+
 <img width="1365" height="601" alt="image" src="https://github.com/user-attachments/assets/ba2a2f89-a70d-44ce-b394-85834f8a7ce0" />
+
 <img width="1365" height="597" alt="image" src="https://github.com/user-attachments/assets/c2a64016-6a88-4ecf-9177-e01c1a60c527" />
-<img width="1365" height="602" alt="image" src="https://github.com/user-attachments/assets/f8163078-0ea8-4314-b84c-3b971628d4a2" />
+
+<img width="1365" height="596" alt="image" src="https://github.com/user-attachments/assets/ce6d49e8-ab57-4339-9925-61a97a826c77" />
+
+<img width="1365" height="600" alt="image" src="https://github.com/user-attachments/assets/8330b161-3542-4359-b3ce-ad9a9c480e84" />
+
+<img width="1365" height="606" alt="image" src="https://github.com/user-attachments/assets/c8b2b870-6e13-43b4-99e4-5a4e664c7da4" />
+
+<img width="1365" height="648" alt="image" src="https://github.com/user-attachments/assets/12e51131-8196-4f44-9da7-27678a6bb233" />

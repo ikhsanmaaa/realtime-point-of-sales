@@ -5,9 +5,9 @@ This project simulates a modern cafe ordering system with live order updates, pa
 
 Live Demo: https://realtime-point-of-sales-seven.vercel.app/
 
-login info info
-email: webdevproject01@gmail.com
-password: admin1
+## login info
+- email: webdevproject01@gmail.com
+- password: admin1
 ---
 
 ##  Features

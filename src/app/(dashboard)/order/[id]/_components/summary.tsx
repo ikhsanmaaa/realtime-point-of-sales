@@ -76,6 +76,9 @@ export default function Summary({
         onError: function (result: any) {
           window.location.href = `/payment/failed?order_id=${result.order_id}`;
         },
+        onPending: function (result: any) {
+          console.log("Payment pending");
+        },
       });
     }
   }, [generatePaymentState]);

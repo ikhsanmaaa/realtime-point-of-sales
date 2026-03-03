@@ -84,11 +84,5 @@ export default function PaymentStatus() {
         </Link>
       </div>
     );
-  } else {
-    return (
-      <div className="flex items-center">
-        <h1>{status}</h1>
-      </div>
-    );
   }
 }

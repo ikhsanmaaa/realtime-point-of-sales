@@ -304,8 +304,12 @@ export default function OrderManagement() {
           <h1 className="text-2xl font-bold">Order Management</h1>
           <TabsList>
             <TabsTrigger value="list">Order List</TabsTrigger>
-            <TabsTrigger value="1st">Table 1st Floor</TabsTrigger>
-            <TabsTrigger value="2nd">Table 2nd Floor</TabsTrigger>
+            <TabsTrigger value="1st" hidden={profile.role !== "admin"}>
+              Table 1st Floor
+            </TabsTrigger>
+            <TabsTrigger value="2nd" hidden={profile.role !== "admin"}>
+              Table 2nd Floor
+            </TabsTrigger>
           </TabsList>
         </div>
 

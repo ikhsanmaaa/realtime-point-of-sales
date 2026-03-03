@@ -11,12 +11,15 @@ import { cn } from "@/lib/utils";
 import { Table } from "@/validations/table-validation";
 import { useQuery } from "@tanstack/react-query";
 import { Pencil, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import DialogCreateTable from "./dialog-create-table";
 import DialogUpdateTable from "./dialog-update-table";
 import DialogDeleteTable from "./dialog-delete-table";
 import { supabaseDefault } from "@/lib/supabase/default";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import TableMap from "./table-map";
+import { useAuthStore } from "@/stores/auth-store";
 
 export default function TableManagement() {
   const {
@@ -27,6 +30,8 @@ export default function TableManagement() {
     handleChangePage,
     handleChangeSearch,
   } = useDataTable();
+
+  const profile = useAuthStore((state) => state.profile);
 
   const {
     data: tables,
@@ -128,45 +133,113 @@ export default function TableManagement() {
       : 0;
   }, [tables]);
 
+  const { data: tables1stFloor, refetch: refetch1st } = useQuery({
+    queryKey: ["tables-1st-floor"],
+    queryFn: async () => {
+      const result = await supabaseDefault
+        .from("tables")
+        .select("*")
+        .eq("floor", "1F");
+
+      return result.data;
+    },
+  });
+
+  const { data: tables2ndFloor, refetch: refetch2nd } = useQuery({
+    queryKey: ["tables-2nd-floor"],
+    queryFn: async () => {
+      const result = await supabaseDefault
+        .from("tables")
+        .select("*")
+        .eq("floor", "2F");
+
+      return result.data;
+    },
+  });
+
+  useEffect(() => {
+    const channel = supabaseDefault
+      .channel("change-table")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "tables",
+        },
+        () => {
+          refetch();
+          refetch1st();
+          refetch2nd();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabaseDefault.removeChannel(channel);
+    };
+  });
+
   return (
     <div className="w-full">
-      <div className="flex flex-col lg:flex-row mb-4 gap-2 justify-between w-full">
-        <h1 className="text-2xl font-bold">Table Management</h1>
-        <div className="flex gap-2">
-          <Input
-            placeholder="Search by name or status"
-            onChange={(e) => handleChangeSearch(e.target.value)}
-          />
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline">Create</Button>
-            </DialogTrigger>
-            <DialogCreateTable refetch={refetch} />
-          </Dialog>
+      <Tabs defaultValue="list">
+        <div className="flex flex-col lg:flex-row mb-4 gap-2 justify-between w-full">
+          <h1 className="text-2xl font-bold">Table Management</h1>
+          <TabsList>
+            <TabsTrigger value="list">Table List</TabsTrigger>
+            <TabsTrigger value="1st" hidden={profile.role !== "admin"}>
+              Table 1st Floor
+            </TabsTrigger>
+            <TabsTrigger value="2nd" hidden={profile.role !== "admin"}>
+              Table 2nd Floor
+            </TabsTrigger>
+          </TabsList>
         </div>
-      </div>
-      <DataTable
-        header={HEADER_TABLE_MANAGEMENT}
-        isLoading={isLoading}
-        data={filterData}
-        totalPages={totalPages}
-        currentPage={currentPage}
-        currentLimit={currentLimit}
-        onChangePage={handleChangePage}
-        onChangeLimit={handleChangeLimit}
-      />
-      <DialogUpdateTable
-        open={selectedAction !== null && selectedAction.type === "update"}
-        refetch={refetch}
-        currentData={selectedAction?.data}
-        handleChangeAction={handleChangeAction}
-      />
-      <DialogDeleteTable
-        open={selectedAction !== null && selectedAction.type === "delete"}
-        refetch={refetch}
-        currentData={selectedAction?.data}
-        handleChangeAction={handleChangeAction}
-      />
+
+        <TabsContent value="list">
+          <div className="flex gap-2">
+            <Input
+              placeholder="Search by name or status"
+              onChange={(e) => handleChangeSearch(e.target.value)}
+              className="max-w-64 justify-between mb-4"
+            />
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline">Create</Button>
+              </DialogTrigger>
+              <DialogCreateTable refetch={refetch} />
+            </Dialog>
+          </div>
+          <DataTable
+            header={HEADER_TABLE_MANAGEMENT}
+            isLoading={isLoading}
+            data={filterData}
+            totalPages={totalPages}
+            currentPage={currentPage}
+            currentLimit={currentLimit}
+            onChangePage={handleChangePage}
+            onChangeLimit={handleChangeLimit}
+          />
+          <DialogUpdateTable
+            open={selectedAction !== null && selectedAction.type === "update"}
+            refetch={refetch}
+            currentData={selectedAction?.data}
+            handleChangeAction={handleChangeAction}
+          />
+          <DialogDeleteTable
+            open={selectedAction !== null && selectedAction.type === "delete"}
+            refetch={refetch}
+            currentData={selectedAction?.data}
+            handleChangeAction={handleChangeAction}
+          />
+        </TabsContent>
+        <TabsContent value="1st">
+          <TableMap tables={tables1stFloor || []} />
+        </TabsContent>
+        <TabsContent value="2nd">
+          <TableMap tables={tables2ndFloor || []} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

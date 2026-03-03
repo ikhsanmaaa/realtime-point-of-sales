@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    let newStatus = "pending";
+    let newStatus: string | null = null;
 
     if (["settlement", "capture"].includes(transaction_status)) {
       newStatus = "settled";
@@ -45,12 +45,18 @@ Deno.serve(async (req) => {
       newStatus = "failed";
     }
 
-    const { data: order, error: orderError } = await supabase
-      .from("orders")
-      .update({ status: newStatus })
-      .eq("order_id", order_id)
-      .select()
-      .single();
+    if (transaction_status === "pending") {
+      return new Response("OK", { status: 200 });
+    }
+
+    if (newStatus) {
+      const { data: order, error: orderError } = await supabase
+        .from("orders")
+        .update({ status: newStatus })
+        .eq("order_id", order_id)
+        .select()
+        .single();
+    }
 
     if (orderError) {
       console.error("Order update error:", orderError);

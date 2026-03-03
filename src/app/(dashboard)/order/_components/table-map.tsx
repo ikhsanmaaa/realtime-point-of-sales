@@ -36,7 +36,7 @@ export function TableNode({
       <HoverCardTrigger asChild>
         <div
           className={cn(
-            "bg-muted rounded-lg flex items-center justify-center outline-2 outline-offset-4 outline-dashed",
+            "bg-muted rounded-lg flex items-center justify-center outline-2 outline-offset-4 outline-dashed cursor-pointer",
             {
               "w-20 h-20": data.capacity === 2,
               "w-32 h-20": data.capacity === 4,
